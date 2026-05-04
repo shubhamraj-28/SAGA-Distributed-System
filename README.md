@@ -1,30 +1,57 @@
 # SAGA Distributed System
 
-Choreography-style **distributed saga** for coordinating a multi-step business transaction across separate Spring Boot microservices. An **orchestrator** drives the flow over **Apache Kafka**; each step service owns its data in **PostgreSQL** (separate schemas in one database). Failed steps trigger **compensating transactions** on prior steps where supported.
+A implementation of the **Saga Pattern** for coordinating distributed transactions across microservices. This system demonstrates how to reliably execute multi-step business workflows while maintaining data consistency across independently deployed services using **Spring Boot**, **Apache Kafka**, and **PostgreSQL**.
 
-## Architecture
+## 🎯 Overview
 
-| Service | Port | Role |
-|--------|------|------|
-| **inventory-service** | 8081 | Reserve / release stock (`inventory` schema) |
-| **payment-service** | 8082 | Charge / refund (`payment` schema) |
-| **notification-service** | 8083 | Send notification (Kafka only; no DB) |
-| **saga-orchestrator** | 8084 | REST API + saga engine + persistence (`orchestrator` schema) |
+The SAGA Distributed System coordinates an **order fulfillment workflow** by orchestrating three independent microservices. Each service manages its own database and communicates via **event-driven architecture** using Kafka. If any step fails, automatic **compensating transactions** roll back previous changes—ensuring eventual consistency even in failure scenarios.
 
-**ORDER_SAGA** steps (see `SagaDefinitionRegistry`):
+### Key Features
+- ✅ **Saga Orchestration Pattern** - Centralized workflow engine with clear step dependencies
+- ✅ **Event-Driven Communication** - Asynchronous Kafka-based message passing
+- ✅ **Distributed Transactions** - Multi-step workflow with automatic rollback on failure
+- ✅ **Compensating Transactions** - Undo operations for inventory reserves and payment charges
+- ✅ **Audit Logging** - Complete step-by-step transaction history and status tracking
+- ✅ **Automated Testing** - Integration tests with Docker, Kafka, and PostgreSQL
+- ✅ **Schema-Per-Service** - Independent database schemas for data isolation
 
-1. `RESERVE_INVENTORY` → topics `inventory.commands` / `inventory.replies` / `inventory.compensate`
-2. `CHARGE_PAYMENT` → `payment.commands` / `payment.replies` / `payment.compensate`
-3. `SEND_NOTIFICATION` → `notification.commands` / `notification.replies` (no compensation topic)
+## 📋 Architecture Overview
 
-PostgreSQL runs on host port **5434** (container `5432`). Kafka broker is advertised at **localhost:9092** for apps running on your machine.
+| Service | Port | Responsibility |
+|---------|------|-----------------|
+| **saga-orchestrator** | 8084 | REST API, saga engine, workflow orchestration |
+| **inventory-service** | 8081 | Inventory management, stock reservations |
+| **payment-service** | 8082 | Payment processing, charge & refund operations |
+| **notification-service** | 8083 | User notifications via Kafka |
 
-JDBC URLs set the session timezone to **UTC** (`options=-c TimeZone=UTC`) so clients whose JVM uses legacy zone IDs (for example `Asia/Calcutta`) still connect cleanly to PostgreSQL 17.
+### Order Saga Workflow
+
+The system executes a three-step saga:
+
+| Step | Service | Command Topic | Reply Topic | Compensation Topic |
+|------|---------|---------------|------------|-------------------|
+| 1️⃣ | Inventory | `inventory.commands` | `inventory.replies` | `inventory.compensate` |
+| 2️⃣ | Payment | `payment.commands` | `payment.replies` | `payment.compensate` |
+| 3️⃣ | Notification | `notification.commands` | `notification.replies` | _(no rollback needed)_ |
+
+**Success Path:** Reserve Inventory → Charge Payment → Send Notification  
+**Failure Path:** If any step fails, prior steps are automatically compensated (reversed)
+
+### Infrastructure Components
+
+- **PostgreSQL 17** - Schema-per-service pattern (port 5434)
+  - `inventory` schema - Stock reservations and inventory management
+  - `payment` schema - Transaction records and payment history
+  - `orchestrator` schema - Saga state management & audit logs
+- **Apache Kafka** (KRaft mode) - Event streaming and message broker (port 9092)
+- **UTC Timezone** - All database connections normalized to UTC for cross-timezone consistency
 
 ## Prerequisites
 
-- **JDK 25** and **Maven 3.9+**
-- **Docker Desktop** (or Docker Engine) for infrastructure and for automated tests
+- **JDK 25** or later
+- **Maven 3.9+**
+- **Docker Desktop** (or Docker Engine)
+- **Git**
 
 ## Run infrastructure (Docker Compose)
 
