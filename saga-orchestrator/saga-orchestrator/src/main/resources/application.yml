@@ -1,0 +1,54 @@
+# ═══════════════════════════════════════════════
+# saga-orchestrator — The Brain
+# ═══════════════════════════════════════════════
+server:
+  port: 8084
+
+spring:
+  application:
+    name: saga-orchestrator
+
+  # ── PostgreSQL (orchestrator schema) ──
+  datasource:
+    url: jdbc:postgresql://localhost:5434/saga_distributed?currentSchema=orchestrator&options=-c%20TimeZone=UTC
+    username: saga_admin
+    password: saga_secret
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        default_schema: orchestrator
+
+  # ── Kafka ──
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+    consumer:
+      group-id: saga-orchestrator-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "io.shub.*"
+        spring.json.use.type.headers: false
+        spring.json.value.default.type: java.util.LinkedHashMap
+
+# ── Saga timeout config ──
+saga:
+  timeout:
+    check-interval-ms: 30000
+    step-timeout-seconds: 120
+
+logging:
+  level:
+    io.shub.saga_orchestrator: DEBUG
+    org.springframework.kafka: INFO

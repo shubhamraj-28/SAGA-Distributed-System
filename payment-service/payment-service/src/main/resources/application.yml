@@ -1,0 +1,48 @@
+# ═══════════════════════════════════════════════
+# payment-service — Step 1
+# ═══════════════════════════════════════════════
+server:
+  port: 8082
+
+spring:
+  application:
+    name: payment-service
+
+  # ── PostgreSQL (payment schema) ──
+  datasource:
+    url: jdbc:postgresql://localhost:5434/saga_distributed?currentSchema=payment&options=-c%20TimeZone=UTC
+    username: saga_admin
+    password: saga_secret
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        default_schema: payment
+
+  # ── Kafka ──
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+    consumer:
+      group-id: payment-service-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "io.shub.*"
+        spring.json.use.type.headers: false
+        spring.json.value.default.type: java.util.LinkedHashMap
+
+logging:
+  level:
+    io.shub.payment_service: DEBUG
+    org.springframework.kafka: INFO

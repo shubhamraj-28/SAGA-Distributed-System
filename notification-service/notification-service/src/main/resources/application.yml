@@ -1,0 +1,36 @@
+# ═══════════════════════════════════════════════
+# notification-service — Step 2
+# ═══════════════════════════════════════════════
+server:
+  port: 8083
+
+spring:
+  application:
+    name: notification-service
+
+  # ── Kafka ──
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+    consumer:
+      group-id: notification-service-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "io.shub.*"
+        spring.json.use.type.headers: false
+        spring.json.value.default.type: java.util.LinkedHashMap
+
+# Set true only for local compensation demos (see application-demo.yml + README)
+notification:
+  simulate-failure: false
+
+logging:
+  level:
+    io.shub.notification_service: DEBUG
+    org.springframework.kafka: INFO

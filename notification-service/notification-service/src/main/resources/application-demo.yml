@@ -1,0 +1,8 @@
+# Run with: spring-boot.run.profiles=demo  (see README)
+spring:
+  config:
+    activate:
+      on-profile: demo
+
+notification:
+  simulate-failure: true
