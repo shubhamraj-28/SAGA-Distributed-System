@@ -68,6 +68,12 @@ This starts:
 
 Wait until Postgres is healthy (Compose defines a healthcheck), then start the four Spring Boot applications (four terminals or your IDE).
 
+### Run Integration Tests
+After starting Docker Compose, you can run all integration tests:
+```powershell
+mvn clean test
+```
+
 ### Start microservices (local JVM)
 
 Use each module’s Maven wrapper or `mvn spring-boot:run` from the nested project directory, in any order (all need Kafka + Postgres up first):

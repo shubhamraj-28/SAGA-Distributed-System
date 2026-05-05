@@ -9,7 +9,12 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class SagaOrchestratorApplication {
 
 	public static void main(String[] args) {
+		java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("UTC"));
 		SpringApplication.run(SagaOrchestratorApplication.class, args);
 	}
 
+	@org.springframework.context.annotation.Bean
+	public com.fasterxml.jackson.databind.ObjectMapper objectMapper() {
+		return new com.fasterxml.jackson.databind.ObjectMapper();
+	}
 }

@@ -38,6 +38,7 @@ import org.springframework.test.web.servlet.MvcResult;
             "spring.datasource.url=jdbc:postgresql://localhost:5434/saga_distributed?currentSchema=orchestrator&options=-c%20TimeZone=UTC",
             "spring.datasource.username=saga_admin",
             "spring.datasource.password=saga_secret",
+            "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect",
             "spring.kafka.bootstrap-servers=localhost:9092",
             "saga.timeout.check-interval-ms=600000",
             "saga.timeout.step-timeout-seconds=600"
